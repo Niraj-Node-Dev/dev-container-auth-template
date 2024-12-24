@@ -1,0 +1,43 @@
+FROM node:22.1-slim AS base
+
+ENV IS_DOCKER=true
+
+# Include global arg in this stage of the build
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+ARG BUILDTIME
+ENV BUILDTIME=${BUILDTIME}
+ARG VERSION
+ENV VERSION=${VERSION}
+ARG REVISION
+ENV REVISION=${REVISION}
+
+ARG APP="backend"
+ENV APP=${APP}
+
+RUN apt-get -y update
+RUN apt-get install -y curl
+RUN pnpm install pm2 -g
+
+ARG IS_DOCKER=true
+ENV IS_DOCKER=${IS_DOCKER}
+
+ENV PORT=7007
+EXPOSE ${PORT}/tcp
+
+FROM base AS build
+WORKDIR /app
+
+COPY . .
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --no-frozen-lockfile
+RUN pnpm run -r build
+
+FROM base AS backend
+WORKDIR /app
+
+
+HEALTHCHECK --interval=5s --timeout=30s --start-period=120s --retries=3 \
+    CMD curl -f --retry 6 --max-time 5 --retry-delay 10 --retry-max-time 60 "http://0.0.0.0:${PORT}" || bash -c 'kill -s 15 -1 && (sleep 10; kill -s 9 -1)'
+
+CMD [ "pm2-runtime", "start", "dist/main.js", "-i", "max" ]

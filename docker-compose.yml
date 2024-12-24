@@ -1,0 +1,82 @@
+services:
+  devcontainer:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile.devcontainer
+    command: /bin/sh -c "while sleep 1000; do :; done" # It will override the existing CMD it will run forever
+    ports:
+      - 7007:7007
+    volumes:
+      - .:/workspace:cached
+      - /workspace/node_modules
+    depends_on:
+      - pgsql
+      - redis
+    environment:
+      - APP_ENV_FILE_PATH=/workspace/.env
+    env_file:
+      - .env
+
+  backend:
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile.backend
+      args:
+        - APP=backend
+        - IS_DOCKER=true
+    command: ['node', 'dist/main.js']
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+      - pgsql
+    ports:
+      - '7007:7007'
+    volumes:
+      - /app/node_modules
+    env_file:
+      - .env
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli ping | grep PONG']
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    command: ['redis-server']
+
+  pgsql:
+    image: 'postgres:16.1'
+    ports:
+      - '${FORWARD_DB_PORT:-5436}:5432'
+    environment:
+      PGPASSWORD: '${DB_PASSWORD:-root}'
+      POSTGRES_DB: '${DB_DATABASE:-backend}'
+      POSTGRES_USER: '${DB_USERNAME:-postgres}'
+      POSTGRES_PASSWORD: '${DB_PASSWORD:-root}'
+      TZ: '${TZ:-Asia/Kolkata}'
+    volumes:
+      - 'pgsql:/var/lib/postgresql/data'
+      - ./.docker/db:/docker-entrypoint-initdb.d
+    env_file:
+      - .env
+    healthcheck:
+      test:
+        - CMD
+        - pg_isready
+        - '-q'
+        - '-d'
+        - '${DB_DATABASE}'
+        - '-U'
+        - '${DB_USERNAME}'
+      retries: 3
+      timeout: 5s
+
+volumes:
+  pgsql:
+  pnpm:

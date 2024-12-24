@@ -1,0 +1,76 @@
+{
+  "name": "Demo",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [7007, 3000],
+  "runServices": ["devcontainer", "pgsql", "redis"],
+  "postCreateCommand": ". .devcontainer/onCreate.sh",
+  "remoteUser": "root",
+  "containerEnv": {
+    "SHELL": "/bin/bash",
+    "DISPLAY": "unix:0"
+  },
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    "source=devcontainer-bashhistory,target=/commandhistory,type=volume",
+    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
+  ],
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22.1.0",
+      "pnpmVersion": "9.6.0"
+    },
+    "ghcr.io/devcontainers/features/terraform:1": {},
+    "ghcr.io/mikaello/devcontainer-features/modern-shell-utils:1": {},
+    "ghcr.io/devcontainers-contrib/features/pre-commit:2": {},
+    "ghcr.io/robbert229/devcontainer-features/postgresql-client:1": {
+      "version": "16"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "git": "latest",
+    "git-lfs": "latest",
+    "github-cli": "latest",
+    "aws-cli": "latest"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "4ops.terraform",
+        "hashicorp.terraform",
+        "pjmiravalle.terraform-advanced-syntax-highlighting",
+        "mhutchie.git-graph",
+        "eamodio.gitlens",
+        "ms-azuretools.vscode-docker",
+        "github.vscode-github-actions",
+        "johnpapa.vscode-peacock",
+        "timonwong.shellcheck",
+        "robertz.code-snapshot"
+      ],
+      "settings": {
+        "editor.tabSize": 4,
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          },
+          "fish": {
+            "path": "fish"
+          },
+          "tmux": {
+            "path": "tmux",
+            "icon": "terminal-tmux"
+          },
+          "pwsh": {
+            "path": "pwsh",
+            "icon": "terminal-powershell"
+          }
+        }
+      }
+    }
+  }
+}
