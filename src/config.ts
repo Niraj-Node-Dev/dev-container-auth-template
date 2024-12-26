@@ -18,3 +18,15 @@ export const APP_NAME = getEnv('APP_NAME', 'demo');
 export const APP_ENV = getEnv('APP_ENV', 'local');
 
 export const DEFAULT_USER_ROLE = getEnv('DEFAULT_USER_ROLE', 'NORMAL');
+
+export const REDIS_HOST = getEnv('REDIS_HOST', '0.0.0.0');
+export const REDIS_PORT = +getEnv('REDIS_PORT', '6379');
+
+export const REDIS_USERNAME =
+    getEnv('REDIS_USERNAME', 'undefined') === 'undefined' ? undefined : getEnv('REDIS_USERNAME');
+
+export const REDIS_PASSWORD =
+    getEnv('REDIS_PASSWORD', 'undefined') === 'undefined' ? undefined : getEnv('REDIS_PASSWORD');
+
+export const THROTTLE_TTL = +getEnv('THROTTLE_TTL', '60000');
+export const THROTTLE_LIMIT = +getEnv('THROTTLE_LIMIT', '60');
