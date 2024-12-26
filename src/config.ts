@@ -16,3 +16,5 @@ export const JWT_SALT = getEnv('JWT_SALT', 'secret');
 export const JWT_EXPIRES = getEnv('JWT_EXPIRES', '10000');
 export const APP_NAME = getEnv('APP_NAME', 'demo');
 export const APP_ENV = getEnv('APP_ENV', 'local');
+
+export const DEFAULT_USER_ROLE = getEnv('DEFAULT_USER_ROLE', 'NORMAL');
