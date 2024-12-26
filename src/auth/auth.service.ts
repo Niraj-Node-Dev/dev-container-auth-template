@@ -7,9 +7,10 @@ import { UserLoginDto, UserRegisterDto } from './dto';
 import { DEFAULT_USER_ROLE } from '../config';
 import { comparePassword, generateSaltAndHash, jwtSign } from '../utils';
 import { UnautherizationError } from '../utils/error';
-
+import { redis } from '../utils/redis';
 @Injectable()
 export class AuthService {
+
     constructor(
         private readonly userRepo: UserRepository,
         private readonly roleAvailable: RoleAvailableRepository,
@@ -72,7 +73,7 @@ export class AuthService {
 
             const savedUser = await this.userRepo.save(user);
 
-            // assign him the role
+            // assign the role to the user
             const roleAssignment = this.roleAssigned.create({
                 user: savedUser,
                 role: role,
@@ -87,7 +88,7 @@ export class AuthService {
             }
             const err = e as Error;
             console.error(err);
-            throw new UserError(`Error while register an user ${err.message}'`);
+            throw new UserError(`Error while registering a user ${err.message}`);
         }
     }
 
@@ -100,6 +101,12 @@ export class AuthService {
                 throw new UnautherizationError(`Invalid email or password`);
             }
 
+            const cachedRole = await redis.get(`user:${user.id}:role`);
+
+            if (cachedRole) {
+                return jwtSign({ id: String(user.id), email: user.email, role: cachedRole });
+            }
+
             const userRole = await this.roleAssigned.findOne({
                 where: { user: { id: user.id } },
                 relations: ['role'],
@@ -108,6 +115,9 @@ export class AuthService {
             if (!userRole) {
                 throw new UserError(`No role assigned to this user. Please contact admin.`);
             }
+
+            // Cache the role in Redis for future requests
+            await redis.set(`user:${user.id}:role`, userRole.role.name, 'EX', 3600); // Cache for 1 hour
 
             const tokenData = { id: String(user.id), email: user.email, role: userRole.role.name };
             const encryptedData = jwtSign(tokenData);

@@ -4,11 +4,10 @@ import { AuthService } from './auth.service';
 import { RoleAssignedRepository, RoleAvailableRepository, UserRepository } from '../repo';
 
 @Module({
-    imports: [
-    ],
+    imports: [],
     controllers: [AuthController],
     providers: [
-        AuthService, UserRepository, RoleAvailableRepository, RoleAssignedRepository
+        AuthService, UserRepository, RoleAvailableRepository, RoleAssignedRepository,
     ],
 })
 export class AuthModule { }
